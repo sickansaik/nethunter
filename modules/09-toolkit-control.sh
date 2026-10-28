@@ -24,6 +24,10 @@ source "$SCRIPT_DIR/lib/runtime.sh"
 DISPLAY_VALUE="$RUNTIME_X11_DISPLAY"
 export DISPLAY="$DISPLAY_VALUE"
 
+# GUI mode (desktop|mobile). Env override wins over settings.conf.
+GUI_MODE="${NHT_GUI_MODE:-${GUI_MODE:-desktop}}"
+MOBILE_DPI="${NHT_MOBILE_DPI:-${MOBILE_DPI:-192}}"
+
 # Do NOT export an Ubuntu XDG runtime path into the Termux host.
 # Ubuntu/PRoot gets its runtime directory inside the individual session.
 
@@ -209,6 +213,25 @@ start_xfce() {
         return 1
     }
 
+    # Mobile mode: scale fonts, icons and cursor up for a phone screen.
+    # Env-only (no dbus/xfconf needed) so it is inherited by startxfce4 and
+    # every app it spawns. xfsettingsd publishes /Xft/DPI via XSETTINGS and
+    # can override the xrdb Xft.dpi fallback for GTK apps, so GTK text is
+    # scaled with GDK_DPI_SCALE (a multiplier on top of whatever DPI XFCE
+    # uses). Qt uses QT_FONT_DPI; xrdb covers plain Xlib/Xft apps.
+    local mobile_exports=""
+    if [[ "$GUI_MODE" == "mobile" ]]; then
+        local gdk_dpi_scale
+        gdk_dpi_scale="$(awk -v d="$MOBILE_DPI" 'BEGIN { if (d+0 <= 0) d = 192; printf "%.2f", d / 96 }')"
+        control_info "GUI-läge: mobil (DPI $MOBILE_DPI, större text/ikoner)."
+        mobile_exports="
+        export QT_FONT_DPI='$MOBILE_DPI'
+        export QT_AUTO_SCREEN_SCALE_FACTOR='0'
+        export XCURSOR_SIZE='48'
+        export GDK_DPI_SCALE='$gdk_dpi_scale'
+        printf 'Xft.dpi: %s\\n' '$MOBILE_DPI' | xrdb -merge 2>/dev/null || true"
+    fi
+
     nohup bash -c 'source "$1"; shift; runtime_ubuntu_login "$@"' _ "$SCRIPT_DIR/lib/runtime.sh" "$RUNTIME_UBUNTU" -- bash -c "
         export DISPLAY='$RUNTIME_X11_DISPLAY'
         export XDG_RUNTIME_DIR='/tmp/runtime-root'
@@ -221,6 +244,7 @@ start_xfce() {
         unset PULSE_SERVER
         export PULSE_CLIENTCONFIG='$pulse_client_config'
         export PULSE_COOKIE='$pulse_cookie'
+        $mobile_exports
 
         mkdir -p \"\$XDG_RUNTIME_DIR\"
         chmod 700 \"\$XDG_RUNTIME_DIR\"
