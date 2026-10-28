@@ -1,0 +1,144 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+###############################################################################
+# NetHunter Toolkit
+# v0.5.0 Evolution
+# NHT CLI
+###############################################################################
+
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+source "$SCRIPT_DIR/config/version.conf"
+source "$SCRIPT_DIR/lib/colors.sh"
+source "$SCRIPT_DIR/lib/feature-loader.sh"
+
+usage() {
+    echo
+    echo "============================================================"
+    echo "        NetHunter Toolkit"
+    echo "============================================================"
+    echo
+    echo "Version : $TOOLKIT_VERSION"
+    echo "Codename: $TOOLKIT_CODENAME"
+    echo "Status  : $TOOLKIT_STATUS"
+    echo
+    echo "Usage:"
+    echo
+    echo "  nht status"
+    echo "  nht doctor"
+    echo "  nht runtime"
+    echo "  nht features"
+    echo "  nht features list"
+    echo "  nht features info <feature>"
+    echo "  nht features run <feature>"
+    echo "  nht features run network scan"
+    echo "  nht features run network quick"
+    echo "  nht features run network standard"
+    echo "  nht features run network diagnostic"
+    echo "  nht features run network tools"
+    echo "  nht features run network report"
+    echo "  nht features run network json"
+    echo "  nht features run network snapshot"
+    echo "  nht features run network snapshots"
+    echo "  nht features run network latest"
+    echo "  nht features run network validate <snapshot>"
+    echo "  nht version"
+    echo
+}
+
+show_version() {
+    echo
+    echo "NetHunter Toolkit"
+    echo "Version : $TOOLKIT_VERSION"
+    echo "Codename: $TOOLKIT_CODENAME"
+    echo "Status  : $TOOLKIT_STATUS"
+    echo
+}
+
+run_status() {
+    "$SCRIPT_DIR/status.sh"
+}
+
+run_doctor() {
+    "$SCRIPT_DIR/doctor.sh"
+}
+
+run_runtime() {
+    "$SCRIPT_DIR/modules/09-toolkit-control.sh" state
+}
+
+run_features() {
+    case "${2:-list}" in
+        list)
+            "$SCRIPT_DIR/feature.sh" list
+            ;;
+
+        info)
+            if [[ -z "${3:-}" ]]; then
+                echo "[✗] Missing feature name."
+                echo "Usage: nht features info <feature>"
+                return 1
+            fi
+
+            "$SCRIPT_DIR/feature.sh" info "$3"
+            ;;
+
+        run)
+            if [[ -z "${3:-}" ]]; then
+                echo "[✗] Missing feature name."
+                echo "Usage: nht features run <feature>"
+                return 1
+            fi
+
+            "$SCRIPT_DIR/feature.sh" run "${@:3}"
+            ;;
+
+        *)
+            echo "[✗] Unknown feature command: $2"
+            echo
+            echo "Available:"
+            echo "  list"
+            echo "  info <feature>"
+            echo "  run <feature>"
+            return 1
+            ;;
+    esac
+}
+
+case "${1:-}" in
+    status)
+        run_status
+        ;;
+
+    doctor)
+        run_doctor
+        ;;
+
+    runtime)
+        run_runtime
+        ;;
+
+    features)
+        run_features "$@"
+        ;;
+
+    version)
+        show_version
+        ;;
+
+    help|-h|--help)
+        usage
+        ;;
+
+    "")
+        usage
+        ;;
+
+    *)
+        echo "[✗] Unknown command: $1"
+        usage
+        exit 1
+        ;;
+esac
