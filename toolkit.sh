@@ -30,7 +30,11 @@ do
     echo "Version : $TOOLKIT_VERSION"
     echo "Codename: $TOOLKIT_CODENAME"
     echo "Display : $DEFAULT_DISPLAY"
-    echo "GUI-läge: ${GUI_MODE:-desktop}"
+    if [[ -n "${NHT_GUI_MODE:-}" ]]; then
+        echo "GUI-läge: ${NHT_GUI_MODE} (override: NHT_GUI_MODE)"
+    else
+        echo "GUI-läge: ${GUI_MODE:-desktop}"
+    fi
     echo "Auto Repair: $AUTO_REPAIR"
     echo "Auto Update: $AUTO_UPDATE"
     echo
@@ -179,7 +183,11 @@ do
                     fi
                     if sed -i "s/^GUI_MODE=.*/GUI_MODE=\"$NEW_MODE\"/" "$SCRIPT_DIR/config/settings.conf"; then
                         GUI_MODE="$NEW_MODE"
-                        info "GUI-läge satt till: $NEW_MODE. Gäller vid nästa Start/Restart."
+                        if [[ -n "${NHT_GUI_MODE:-}" ]]; then
+                            info "Sparat GUI-läge satt till: $NEW_MODE. NHT_GUI_MODE=$NHT_GUI_MODE gäller fortfarande vid nästa Start/Restart."
+                        else
+                            info "GUI-läge satt till: $NEW_MODE. Gäller vid nästa Start/Restart."
+                        fi
                     else
                         warn "Kunde inte uppdatera GUI_MODE i settings.conf."
                     fi
