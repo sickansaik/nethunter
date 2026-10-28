@@ -1,0 +1,30 @@
+NetHunter Toolkit v0.5.0
+Codename: Evolution
+Status: Stable
+
+Parent release:
+- NetHunter Toolkit v0.4.4 — Runtime — Stable
+- Golden Baseline: NetHunter-Toolkit/backups/v0.4.4-runtime/final-release-20260827-032440
+
+Release focus:
+- Feature framework and NHT feature dispatch
+- Network intelligence and scan profiles
+- Network diagnostics and reporting
+- Machine-readable nht.network.v1 data model
+- Persistent network snapshot engine
+- latest.json and snapshot history
+- Collision-safe sequential snapshot naming
+- Invalid JSON rejection
+- Persistent runtime/network state across Toolkit updates
+- Release-owned source and installation-owned state separation
+
+Release ownership:
+- runtime/ubuntu-gui.sh is release-owned source
+- lib/network/snapshot.sh is release-owned source
+- runtime/network/** is persistent installation state and is not shipped
+
+Release state:
+- STEP 4F network persistence qualification: PASS
+- STEP 4G release engineering: PASS
+- Final release qualification: PASS
+- Stable release freeze: PASS

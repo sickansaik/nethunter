@@ -1,0 +1,5 @@
+# ShellCheck-konfiguration för NetHunter Toolkit.
+# Skript laddar bibliotek dynamiskt via "$(dirname "$0")/../lib/..." vilket
+# ShellCheck inte kan följa statiskt. SC1091 (kan inte följa källfil) är därför
+# brus i CI och stängs av. Övriga kontroller är aktiva.
+disable=SC1091
