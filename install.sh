@@ -152,6 +152,7 @@ MODULES=(
     "05-security.sh"
     "06-devtools.sh"
     "07-performance.sh"
+    "08-desktop-shortcuts.sh"
 )
 
 if ! run_modules "${MODULES[@]}"; then

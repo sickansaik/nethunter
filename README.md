@@ -11,7 +11,9 @@ Stable och PASS i äldre releasefiler gäller historisk kvalificering, inte
 Verktyget installeras och körs på en Android-enhet med Termux. Övergripande steg:
 
 ```bash
-# 1. Installera Termux och Termux:X11 från F-Droid (inte Google Play).
+# 1. Installera Termux-appen (F-Droid eller GitHub, inte Google Play)
+#    och Termux:X11-appen (universal-APK:n från GitHub-releasen nightly).
+#    Termux-paketet termux-x11-nightly installeras av modul 01 nedan.
 # 2. Hämta Toolkit till enheten, t.ex. via git eller en överförd kopia:
 git clone https://github.com/sickansaik/nethunter.git
 cd nethunter
@@ -25,6 +27,11 @@ bash install.sh
 ./nht doctor
 ./nht features list
 ```
+
+Efter installationen syns säkerhets- och nätverksverktygen (nmap, sqlmap,
+hydra, gobuster, ffuf, netcat, tcpdump, whois, dig) som klickbara ikoner i
+XFCE-menyn **Applications** och på skrivbordet. Starta skrivbordet med
+`bash toolkit.sh` → 8 (Ubuntu GUI) → 1 (Start); välj 6 först för mobilläge.
 
 Detaljerad provkörning på enhet beskrivs i [TERMUX-TEST.md](TERMUX-TEST.md).
 Installationen hämtar paket och kräver internet samt tillräckligt
@@ -47,7 +54,7 @@ behöver finnas separat. Exakta kompatibla versioner återstår att provköra.
 
 | Ingång | Innehåll | Status |
 | --- | --- | --- |
-| `bash install.sh` | Termux-paket, Ubuntu, X11, XFCE och installationsmoduler | Implementerat; enhetsprov återstår |
+| `bash install.sh` | Termux-paket, Ubuntu, X11, XFCE, säkerhetsverktyg och meny-/skrivbordsgenvägar | Implementerat; enhetsprov återstår |
 | `./nht version`, `./nht help` | Version och hjälp | Implementerat |
 | `./nht status`, `./nht doctor` | Status och diagnostik | Implementerat; kräver målmiljön |
 | `./nht runtime` | Visar aktuell driftstatus | Implementerat |
