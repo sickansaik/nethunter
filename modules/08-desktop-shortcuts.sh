@@ -10,8 +10,10 @@
 #   * writes .desktop launchers to the applications menu AND the desktop,
 #     so the tools show up as clickable icons instead of an empty desktop.
 #
-# Best-effort: a missing tool is skipped, and the module never fails the
-# whole installation over cosmetics.
+# Best-effort: a missing tool is skipped, but a genuine failure (e.g. a
+# directory or file that cannot be written) is surfaced as a module warning
+# instead of being masked as success. The module never fails the whole
+# installation over cosmetics.
 ###############################################################################
 
 source "$(dirname "$0")/../lib/colors.sh"
@@ -45,8 +47,9 @@ fi
 ###############################################################################
 # Launcher helper + .desktop files (written inside Ubuntu PRoot)
 #
-# All of the following runs in a single Ubuntu shell. It is self-contained so
-# that a failure stays inside the module and is reported as a warning.
+# All of the following runs in a single Ubuntu shell. A real file-operation
+# failure sets fail=1 and the shell exits non-zero so the module reports a
+# warning; missing tools are simply skipped.
 ###############################################################################
 
 if ! runtime_ubuntu_login "$RUNTIME_UBUNTU" -- bash -lc '
@@ -55,14 +58,15 @@ set -u
 APP_DIR="/usr/share/applications"
 DESK_DIR="/root/Desktop"
 BIN="/usr/local/bin/nht-tool"
+fail=0
 
-mkdir -p "$APP_DIR" "$DESK_DIR" "$(dirname "$BIN")"
+mkdir -p "$APP_DIR" "$DESK_DIR" "$(dirname "$BIN")" || fail=1
 
 # --- Launcher helper -------------------------------------------------------
 # Usage: nht-tool <command> [friendly name]
 # Prints a short banner and the tool help, then drops into an interactive
 # shell so the user can type the real command.
-cat > "$BIN" <<"EOS"
+if cat > "$BIN" <<"EOS"
 #!/bin/bash
 tool="$1"
 name="${2:-$1}"
@@ -80,7 +84,11 @@ fi
 echo
 exec bash
 EOS
-chmod +x "$BIN"
+then
+    chmod +x "$BIN" || fail=1
+else
+    fail=1
+fi
 
 # --- Tool table ------------------------------------------------------------
 # cmd|Name|Comment|Icon
@@ -98,10 +106,11 @@ dig|dig|DNS-uppslag|dialog-information
 
 make_launcher() {
     # $1 cmd  $2 name  $3 comment  $4 icon
+    # return 1 = tool not installed (skip, not a failure)
     local cmd="$1" name="$2" comment="$3" icon="$4"
     command -v "$cmd" >/dev/null 2>&1 || return 1
     local file="$APP_DIR/nht-${cmd}.desktop"
-    cat > "$file" <<EOD
+    if ! cat > "$file" <<EOD
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -114,9 +123,13 @@ Terminal=false
 Categories=System;Network;Security;X-NetHunter;
 Keywords=nethunter;security;pentest;
 EOD
+    then
+        fail=1
+        return 0
+    fi
     # Desktop copy (clickable icon on the home screen)
-    cp "$file" "$DESK_DIR/nht-${cmd}.desktop"
-    chmod +x "$DESK_DIR/nht-${cmd}.desktop"
+    cp "$file" "$DESK_DIR/nht-${cmd}.desktop" || fail=1
+    chmod +x "$DESK_DIR/nht-${cmd}.desktop" || fail=1
     return 0
 }
 
@@ -131,7 +144,7 @@ $(printf "%s\n" "$TOOLS")
 EOT
 
 # --- Plain NetHunter terminal ---------------------------------------------
-cat > "$APP_DIR/nht-terminal.desktop" <<EOD
+if cat > "$APP_DIR/nht-terminal.desktop" <<EOD
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -142,14 +155,19 @@ Icon=utilities-terminal
 Terminal=false
 Categories=System;X-NetHunter;
 EOD
-cp "$APP_DIR/nht-terminal.desktop" "$DESK_DIR/nht-terminal.desktop"
-chmod +x "$DESK_DIR/nht-terminal.desktop"
+then
+    cp "$APP_DIR/nht-terminal.desktop" "$DESK_DIR/nht-terminal.desktop" || fail=1
+    chmod +x "$DESK_DIR/nht-terminal.desktop" || fail=1
+else
+    fail=1
+fi
 
 # Refresh the menu cache if the tool is available.
 command -v update-desktop-database >/dev/null 2>&1 && \
     update-desktop-database "$APP_DIR" >/dev/null 2>&1 || true
 
 echo "NHT_LAUNCHERS=$count"
+exit "$fail"
 '
 then
     log_warn "Genvägarna kunde inte skapas fullständigt."
