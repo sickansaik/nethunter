@@ -33,6 +33,8 @@ hydra, gobuster, ffuf, netcat, tcpdump, whois, dig) som klickbara ikoner i
 XFCE-menyn **Applications** och på skrivbordet. Starta skrivbordet med
 `bash toolkit.sh` → 8 (Ubuntu GUI) → 1 (Start); välj 6 först för mobilläge.
 
+Skrivbordet installeras med ett touch-vänligt "Linux-telefon"-läge: en **dock längst ner** med stora ikoner (appmeny, NetHunter Terminal och verktygen), ett mörkt tema och en mörk bakgrund. Starta om skrivbordet (toolkit.sh → 8 → 3 Restart) efter en ominstallation för att se det.
+
 Detaljerad provkörning på enhet beskrivs i [TERMUX-TEST.md](TERMUX-TEST.md).
 Installationen hämtar paket och kräver internet samt tillräckligt
 lagringsutrymme för Ubuntu och backuper. Se nedan för exakta miljökrav.
